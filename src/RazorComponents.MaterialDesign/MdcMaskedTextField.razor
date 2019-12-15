@@ -2,18 +2,12 @@
 @inject IJSRuntime jsRuntime
 @using System.Text.RegularExpressions;
 
-    <div @ref="textFieldElem" class="mdc-text-field" style="@(Width == 0 ? "" : $"width: {Width}px;")">
-        @if (ReadOnly)
-        {
-            <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" readonly @bind="@CurrentValue" @onkeyup="@KeyDownHandler" @onkeyup:preventDefault @onkeypress="@KeyPressHandler" @onkeypress:preventDefault @onblur="@OnBlur" />
-        }
-        else
-        {
-            <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" @bind="@CurrentValue" @onkeyup="@KeyDownHandler" @onkeyup:preventDefault @onkeypress="@KeyPressHandler" @onkeypress:preventDefault @onblur="@OnBlur" />
-        }
-        <label class="mdc-floating-label" for=@id>@Label</label>
-        <div class="mdc-line-ripple"></div>
-    </div>
+<div @ref="textFieldElem" class="mdc-text-field" style="@(Width == 0 ? "" : $"width: {Width}px;")">
+    <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" @bind="@CurrentValue" @onkeyup="@KeyDownHandler" @onkeyup:preventDefault @onkeypress="@KeyPressHandler" @onkeypress:preventDefault @onblur="@OnBlur" />
+
+    <label class="mdc-floating-label" for=@id>@Label</label>
+    <div class="mdc-line-ripple"></div>
+</div>
 
 @functions {
     string id = Guid.NewGuid().ToString();
@@ -24,7 +18,6 @@
     [Parameter] public uint Width { get; set; }
     [Parameter] public string Mask { get; set; }
     [Parameter] public bool Reverse { get; set; }
-    [Parameter] public bool ReadOnly { get; set; }
     [Parameter] public EventCallback OnBlur { get; set; }
 
     protected async override Task OnAfterFirstRenderAsync() => await jsRuntime.InvokeAsync<object>("BlazorMaterial.textField.init", textFieldElem);

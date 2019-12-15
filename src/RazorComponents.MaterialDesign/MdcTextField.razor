@@ -1,13 +1,19 @@
 ﻿@inherits MdcInputComponentBase<string>
 @inject IJSRuntime jsRuntime
-    
-<div @ref="textFieldElem" class="mdc-text-field">
-    <input type="@Type" id=@id class="mdc-text-field__input @FieldClass"
-           @bind=@CurrentValue />
 
-    <label class="mdc-floating-label" for=@id>@Label</label>
-    <div class="mdc-line-ripple"></div>
-</div>
+    <div @ref="textFieldElem" class="mdc-text-field">
+        @if (ReadOnly)
+        {
+            <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" @bind=@CurrentValue readonly />
+        }
+        else
+        {
+            <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" @bind=@CurrentValue />
+        }
+
+        <label class="mdc-floating-label" for=@id>@Label</label>
+        <div class="mdc-line-ripple"></div>
+    </div>
 
 @functions {
     string id = Guid.NewGuid().ToString();
@@ -15,8 +21,9 @@
 
     [Parameter] public string Type { get; set; } = "text";
     [Parameter] public string Label { get; set; }
+    [Parameter] public uint Width { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
 
     protected async override Task OnAfterFirstRenderAsync()
-        => await jsRuntime.InvokeAsync<object>(
-                "BlazorMaterial.textField.init", textFieldElem);
+        => await jsRuntime.InvokeAsync<object>("BlazorMaterial.textField.init", textFieldElem);
 }

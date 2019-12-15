@@ -1,0 +1,29 @@
+﻿@page "/maskedtextfield"
+
+<h1 class="@MdcTypography.H4">Masked Text field samples</h1>
+
+<MdcMaskedTextField Label="Date" @bind-Value="@date" Mask="00/00/0000" />
+<MdcMaskedTextField Label="Time" @bind-Value="@time" Mask="00:00:00" />
+<MdcMaskedTextField Label="Date and Time" @bind-Value="@date_time" Mask="00/00/0000 00:00:00" />
+<MdcMaskedTextField Label="CEP" @bind-Value="@cep" Mask="00000-000" />
+<MdcMaskedTextField Label="Phone BR" @bind-Value="@phone_br" Mask="0000-0000" />
+<MdcMaskedTextField Label="Phone BR with DDD" @bind-Value="@phone_br_ddd" Mask="(00) 0000-0000" />
+<MdcMaskedTextField Label="Phone US" @bind-Value="@phone_us" Mask="(000) 000-0000" />
+<MdcMaskedTextField Label="CPF" @bind-Value="@cpf" Mask="000.000.000-00" Reverse="true" />
+<MdcMaskedTextField Label="CNPJ" @bind-Value="@cnpj" Mask="00.000.000/0000-00" Reverse="true" />
+<MdcMaskedTextField Label="IP Address" @bind-Value="@ip_address" Mask="099.099.099.099" />
+<MdcMaskedTextField Label="RE" @bind-Value="@re" Mask="###.###-A" Reverse="true" />
+
+@functions {
+    string date;
+    string time;
+    string date_time;
+    string cep;
+    string phone_br;
+    string phone_br_ddd;
+    string phone_us;
+    string cpf;
+    string cnpj;
+    string ip_address;
+    string re;
+}

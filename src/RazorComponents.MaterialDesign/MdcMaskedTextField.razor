@@ -1,0 +1,137 @@
+﻿@inherits MdcInputComponentBase<string>
+@inject IJSRuntime jsRuntime
+@using System.Text.RegularExpressions;
+
+    <div @ref="textFieldElem" class="mdc-text-field" style="@(Width == 0 ? "" : $"width: {Width}px;")">
+        @if (ReadOnly)
+        {
+            <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" readonly @bind="@CurrentValue" @onkeyup="@KeyDownHandler" @onkeyup:preventDefault @onkeypress="@KeyPressHandler" @onkeypress:preventDefault @onblur="@OnBlur" />
+        }
+        else
+        {
+            <input type="@Type" id=@id class="mdc-text-field__input @FieldClass" @bind="@CurrentValue" @onkeyup="@KeyDownHandler" @onkeyup:preventDefault @onkeypress="@KeyPressHandler" @onkeypress:preventDefault @onblur="@OnBlur" />
+        }
+        <label class="mdc-floating-label" for=@id>@Label</label>
+        <div class="mdc-line-ripple"></div>
+    </div>
+
+@functions {
+    string id = Guid.NewGuid().ToString();
+    ElementReference textFieldElem;
+
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public string Label { get; set; }
+    [Parameter] public uint Width { get; set; }
+    [Parameter] public string Mask { get; set; }
+    [Parameter] public bool Reverse { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback OnBlur { get; set; }
+
+    protected async override Task OnAfterFirstRenderAsync() => await jsRuntime.InvokeAsync<object>("BlazorMaterial.textField.init", textFieldElem);
+
+    void KeyDownHandler(KeyboardEventArgs ev)
+    {
+        if (ev.Code == "Backspace" && !string.IsNullOrEmpty(CurrentValue))
+        {
+            CurrentValue = CurrentValue.Substring(0, CurrentValue.Length - 1);
+            if (Reverse)
+            {
+                KeyPressHandlerReverse(ev);
+            }
+        }
+    }
+
+    void KeyPressHandler(KeyboardEventArgs ev)
+    {
+        if (Regex.IsMatch(ev.Key, "^[a-zA-Z0-9\\.]{1}$"))
+        {
+            if (!Reverse)
+            {
+                KeyPressHandlerNotReverse(ev);
+            }
+            else
+            {
+                KeyPressHandlerReverse(ev);
+            }
+        }
+    }
+
+    void KeyPressHandlerNotReverse(KeyboardEventArgs ev)
+    {
+        if (CurrentValue?.Length == Mask.Length) return;
+
+        if (Try(CurrentValue + ev.Key))
+            return;
+
+        foreach (var c in @".,- /\\\(\):".ToCharArray())
+        {
+            if (Try(CurrentValue + c + ev.Key))
+                return;
+
+            foreach (var d in @".,- /\\\(\):".ToCharArray())
+            {
+                if (Try(CurrentValue + c + d + ev.Key))
+                    return;
+            }
+        }
+    }
+
+    void KeyPressHandlerReverse(KeyboardEventArgs ev)
+    {
+        if (CurrentValue?.Length == Mask.Length) return;
+
+        var value = Regex.Replace(CurrentValue ?? "", "[\\.,\\-\\s\\\\/\\(\\)]", "") + (ev.Key == "Backspace" ? null : ev.Key);
+        if (TryReverse(value))
+        {
+            var reversedValue = value.Reverse();
+            var reversedMask = Mask.Reverse();
+            CurrentValue = string.Concat(Format(reversedValue, reversedMask).Reverse());
+        }
+    }
+
+    bool Try(string value)
+    {
+        for (int i = 0; i < Mask.Length; i++)
+        {
+            var mask = Mask.Substring(0, Mask.Length - i).Replace(".", "\\.").Replace("(", "\\(").Replace(")", "\\)").Replace("0", "\\d").Replace("9", "\\d?").Replace("#", "\\d?").Replace("A", "[a-zA-Z0-9]").Replace("S", "[a-zA-Z]");
+            if (Regex.IsMatch(value, "^" + mask + "$"))
+            {
+                CurrentValue = value;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool TryReverse(string value)
+    {
+        for (int i = Mask.Length - 1; i >= 0; i--)
+        {
+            var mask = Regex.Replace(Mask.Substring(i), "[\\.,\\-\\s\\\\/\\(\\)]", "").Replace("0", "\\d").Replace("9", "\\d?").Replace("#", "\\d?").Replace("A", "[a-zA-Z0-9]").Replace("S", "[a-zA-Z]");
+            if (Regex.IsMatch(value, "^" + mask + "$"))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    string Format(IEnumerable<char> value, IEnumerable<char> mask)
+    {
+        var newValue = new System.Text.StringBuilder();
+        int j = 0;
+        for (int i = 0; i < mask.Count() && value.ElementAtOrDefault(j) != 0; i++)
+        {
+            if (!"09#AS".Contains(mask.ElementAt(i)))
+            {
+                newValue.Append(mask.ElementAt(i));
+            }
+            else
+            {
+                newValue.Append(value.ElementAt(j));
+                j++;
+            }
+        }
+        return newValue.ToString();
+    }
+}
